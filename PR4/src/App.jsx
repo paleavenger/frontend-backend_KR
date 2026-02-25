@@ -31,5 +31,26 @@ function App() {
     </>
   )
 }
+function ProductCard({ product }) {
+    return (
+        <div className="product-card">
+            <div className="image-wrapper">
+                <img src={product.image} alt={product.title} />
 
+                {/* Жанр поверх картинки */}
+                <span className="genre-badge">
+          {product.genre}
+        </span>
+            </div>
+
+            <h3>{product.title}</h3>
+            <p className="price">{product.price} ₽</p>
+
+            {/* Количество товара */}
+            <p className="quantity">
+                В наличии: {product.quantity}
+            </p>
+        </div>
+    )
+}
 export default App

@@ -213,6 +213,12 @@ body {
     background: #1f2937;
 }
 
+.card-quantity {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 8px;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
