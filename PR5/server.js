@@ -2,15 +2,21 @@ const express = require("express");
 const cors = require("cors");
 const { nanoid } = require("nanoid");
 
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./swagger");
+
 const app = express();
 const PORT = 3000;
 
 app.use(express.json());
 
+
 app.use(cors({
     origin: "http://localhost:5173",
     methods: ["GET", "POST", "PATCH", "DELETE"],
 }));
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 let products = [
     {
@@ -134,14 +140,136 @@ let products = [
         image: "/images/img_8.png"
     }
 ];
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Product:
+ *       type: object
+ *       required:
+ *         - title
+ *         - category
+ *         - description
+ *         - price
+ *         - stock
+ *         - rating
+ *         - image
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Уникальный идентификатор товара
+ *           example: "a1b2c3"
+ *         title:
+ *           type: string
+ *           description: Название игры
+ *           example: "Elden Ring"
+ *         category:
+ *           type: string
+ *           description: Категория игры
+ *           example: "RPG"
+ *         description:
+ *           type: string
+ *           description: Описание игры
+ *           example: "Хардкорная RPG от FromSoftware"
+ *         price:
+ *           type: number
+ *           description: Цена игры
+ *           example: 40
+ *         stock:
+ *           type: number
+ *           description: Количество на складе
+ *           example: 10
+ *         rating:
+ *           type: number
+ *           description: Рейтинг игры
+ *           example: 4.9
+ *         image:
+ *           type: string
+ *           description: Путь к изображению
+ *           example: "/images/game.png"
+ */
+
+/**
+ * @swagger
+ * /api/products:
+ *   get:
+ *     summary: Получить список всех игр
+ *     tags: [Products]
+ *     responses:
+ *       200:
+ *         description: Успешный ответ со списком товаров
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Product'
+ */
+
 app.get("/api/products", (req, res) => {
     res.json(products);
 });
+
+/**
+ * @swagger
+ * /api/products:
+ *   post:
+ *     summary: Добавить новую игру
+ *     tags: [Products]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Product'
+ *     responses:
+ *       201:
+ *         description: Игра успешно создана
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Product'
+ */
+
 app.post("/api/products", (req, res) => {
     const newProduct = { id: nanoid(6), ...req.body };
     products.push(newProduct);
     res.status(201).json(newProduct);
 });
+
+/**
+ * @swagger
+ * /api/products/{id}:
+ *   patch:
+ *     summary: Обновить данные игры
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID товара
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             example:
+ *               price: 45
+ *               stock: 20
+ *     responses:
+ *       200:
+ *         description: Игра обновлена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Product'
+ *       404:
+ *         description: Товар не найден
+ */
+
 app.patch("/api/products/:id", (req, res) => {
     const product = products.find(p => p.id === req.params.id);
     if (!product) return res.status(404).json({ error: "Not found" });
@@ -149,6 +277,27 @@ app.patch("/api/products/:id", (req, res) => {
     Object.assign(product, req.body);
     res.json(product);
 });
+
+/**
+ * @swagger
+ * /api/products/{id}:
+ *   delete:
+ *     summary: Удалить игру
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID товара
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: Игра успешно удалена
+ *       404:
+ *         description: Товар не найден
+ */
+
 app.delete("/api/products/:id", (req, res) => {
     products = products.filter(p => p.id !== req.params.id);
     res.status(204).send();
