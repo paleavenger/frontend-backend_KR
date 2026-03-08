@@ -14,8 +14,6 @@ const options = {
             },
         ],
     },
-
-    // ВАЖНО 👇
     apis: ["./server.js"],
 };
 

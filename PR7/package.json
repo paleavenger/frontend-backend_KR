@@ -1,0 +1,17 @@
+{
+  "name": "pr7-auth-api",
+  "version": "1.0.0",
+  "description": "PR7 - Auth + Products REST API",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "express": "^4.18.2",
+    "nanoid": "^3.3.7",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  }
+}
