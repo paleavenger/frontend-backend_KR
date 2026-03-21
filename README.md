@@ -277,6 +277,7 @@ node server.js
 cd PR11
 npm install
 npm run dev
+```
 
 **API эндпоинты:**
 
