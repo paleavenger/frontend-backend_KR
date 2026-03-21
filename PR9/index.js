@@ -9,16 +9,19 @@ const app = express();
 const port = 3000;
 
 const JWT_SECRET = 'access_secret';
+const REFRESH_SECRET = 'refresh_secret';
+
 const ACCESS_EXPIRES_IN = '15m';
- 
-// Swagger 
+const REFRESH_EXPIRES_IN = '7d';
+
+// Swagger
 const swaggerOptions = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'PR8',
+            title: 'PR9',
             version: '1.0.0',
-            description: 'JWT аутентификация и CRUD товаров',
+            description: 'JWT аутентификация с refresh-токенами и CRUD товаров',
         },
         servers: [{ url: `http://localhost:${port}`, description: 'Локальный сервер' }],
         components: {
@@ -35,8 +38,8 @@ const swaggerOptions = {
 };
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
- 
-// Middleware 
+
+// Middleware
 app.use(express.json());
 
 app.use((req, res, next) => {
@@ -66,10 +69,10 @@ function authMiddleware(req, res, next) {
         return res.status(401).json({ error: 'Invalid or expired token' });
     }
 }
- 
-// In-memory хранилища 
+
 let users = [];
 let products = [];
+const refreshTokens = new Set();
 
 async function hashPassword(password) {
     return bcrypt.hash(password, 10);
@@ -90,6 +93,22 @@ function findProductById(id, res) {
         return null;
     }
     return product;
+}
+
+function generateAccessToken(user) {
+    return jwt.sign(
+        { sub: user.id, email: user.email },
+        JWT_SECRET,
+        { expiresIn: ACCESS_EXPIRES_IN }
+    );
+}
+
+function generateRefreshToken(user) {
+    return jwt.sign(
+        { sub: user.id, email: user.email },
+        REFRESH_SECRET,
+        { expiresIn: REFRESH_EXPIRES_IN }
+    );
 }
 
 /**
@@ -162,7 +181,7 @@ app.post('/api/auth/register', async (req, res) => {
  * @swagger
  * /api/auth/login:
  *   post:
- *     summary: Вход в систему — возвращает JWT access-токен
+ *     summary: Вход в систему — возвращает пару access- и refresh-токенов
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -180,13 +199,15 @@ app.post('/api/auth/register', async (req, res) => {
  *                 example: qwerty123
  *     responses:
  *       200:
- *         description: Успешный вход, возвращает accessToken
+ *         description: Успешный вход, возвращает accessToken и refreshToken
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
  *                 accessToken:
+ *                   type: string
+ *                 refreshToken:
  *                   type: string
  *       400:
  *         description: Отсутствуют обязательные поля
@@ -212,13 +233,69 @@ app.post('/api/auth/login', async (req, res) => {
         return res.status(401).json({ error: 'Неверный пароль' });
     }
 
-    const accessToken = jwt.sign(
-        { sub: user.id, email: user.email },
-        JWT_SECRET,
-        { expiresIn: ACCESS_EXPIRES_IN }
-    );
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+    refreshTokens.add(refreshToken);
 
-    res.status(200).json({ accessToken });
+    res.status(200).json({ accessToken, refreshToken });
+});
+
+/**
+ * @swagger
+ * /api/auth/refresh:
+ *   post:
+ *     summary: Обновление пары токенов по refresh-токену из заголовка
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Новая пара access- и refresh-токенов
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                 refreshToken:
+ *                   type: string
+ *       400:
+ *         description: Refresh-токен не передан в заголовке
+ *       401:
+ *         description: Токен недействителен или истёк
+ */
+app.post('/api/auth/refresh', (req, res) => {
+    const header = req.headers.authorization || '';
+    const [scheme, refreshToken] = header.split(' ');
+
+    if (scheme !== 'Bearer' || !refreshToken) {
+        return res.status(400).json({ error: 'Refresh-токен обязателен (заголовок Authorization: Bearer <token>)' });
+    }
+
+    if (!refreshTokens.has(refreshToken)) {
+        return res.status(401).json({ error: 'Invalid refresh token' });
+    }
+
+    try {
+        const payload = jwt.verify(refreshToken, REFRESH_SECRET);
+
+        const user = users.find(u => u.id === payload.sub);
+        if (!user) {
+            return res.status(401).json({ error: 'Пользователь не найден' });
+        }
+
+        // Ротация refresh-токена
+        refreshTokens.delete(refreshToken);
+
+        const newAccessToken = generateAccessToken(user);
+        const newRefreshToken = generateRefreshToken(user);
+        refreshTokens.add(newRefreshToken);
+
+        res.status(200).json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
+    } catch {
+        return res.status(401).json({ error: 'Invalid or expired refresh token' });
+    }
 });
 
 /**
@@ -247,7 +324,6 @@ app.get('/api/auth/me', authMiddleware, (req, res) => {
     const { password: _, ...userWithoutPassword } = user;
     res.status(200).json(userWithoutPassword);
 });
-
 /**
  * @swagger
  * /api/products:
@@ -429,7 +505,8 @@ app.delete('/api/products/:id', authMiddleware, (req, res) => {
     const deleted = products.splice(index, 1)[0];
     res.status(200).json({ message: 'Товар удалён', product: deleted });
 });
+
 app.listen(port, () => {
-    console.log(`Сервер запущен:http://localhost:${port}`);
-    console.log(`Swagger UI:http://localhost:${port}/api-docs`);
+    console.log(`Сервер запущен: http://localhost:${port}`);
+    console.log(`Swagger UI: http://localhost:${port}/api-docs`);
 });
