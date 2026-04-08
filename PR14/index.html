@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список задач</title>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="./manifest.json">
+
+    <!-- Цвет темы браузера -->
+    <meta name="theme-color" content="#2563eb">
+
+    <!-- Android -->
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- iOS -->
+    <link rel="apple-touch-icon" href="./icons/favicon-128x128.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Задачи">
+
+    <!-- Favicon -->
+    <link rel="icon" href="./icons/favicon.ico">
+    <link rel="icon" href="./icons/favicon-32x32.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Roboto", sans-serif;
+            background: #0b1019;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        .header {
+            border-bottom: 1px solid #1f2937;
+            background: #111927;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+        }
+        .header-inner {
+            padding: 20px 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        #offline-banner {
+            display: none;
+            background: #7f1d1d;
+            color: #fca5a5;
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+        }
+        .page-container {
+            padding: 40px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .add-form {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+        .add-form input {
+            flex: 1;
+            background: #111927;
+            border: 1px solid #1f2937;
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+        .add-form input:focus {
+            border-color: #2563eb;
+        }
+        .add-form input::placeholder {
+            color: #6b7280;
+        }
+
+        .add-btn {
+            padding: 12px 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s ease;
+        }
+
+        .add-btn:hover { background: #1e40af; }
+
+        #notes-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #notes-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            background: #111927;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            font-size: 15px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .btn-delete {
+            background: none;
+            border: 1px solid #7f1d1d;
+            color: #f87171;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 8px;
+            padding: 4px 10px;
+            line-height: 1;
+            transition: background 0.2s ease;
+        }
+
+        .btn-delete:hover { background: #1f1010; }
+
+        .empty-msg {
+            color: #6b7280;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-inner">Список задач</div>
+    </header>
+
+    <div id="offline-banner">Нет подключения к сети, работаем офлайн</div>
+
+    <div class="page-container">
+        <form id="note-form" class="add-form">
+            <input type="text" id="note-input" placeholder="Введите задачу..." required>
+            <button type="submit" class="add-btn">Добавить</button>
+        </form>
+
+        <ul id="notes-list"></ul>
+        <p id="empty-msg" class="empty-msg" style="display:none">Задач пока нет</p>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
