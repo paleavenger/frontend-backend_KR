@@ -1,0 +1,12 @@
+<form id="note-form" class="add-form">
+    <input type="text" id="note-input" placeholder="Введите задачу..." required>
+    <button type="submit" class="add-btn">Добавить</button>
+</form>
+
+<form id="reminder-form" class="add-form" style="margin-bottom: 28px;">
+    <input type="text" id="reminder-text" placeholder="Текст напоминания..." required style="flex:1; background:#111927; border:1px solid #1f2937; border-radius:10px; padding:12px 14px; color:white; font-size:14px; outline:none; font-family:inherit; transition:border-color 0.2s;">
+    <input type="datetime-local" id="reminder-time" required style="background:#111927; border:1px solid #1f2937; border-radius:10px; padding:12px 14px; color:white; font-size:14px; outline:none; font-family:inherit; color-scheme:dark;">
+    <button type="submit" class="add-btn" style="background:#059669;">+ Напоминание</button>
+</form>
+
+<ul id="notes-list"></ul>

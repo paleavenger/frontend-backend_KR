@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список задач</title>
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="/icons/favicon-128x128.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Задачи">
+    <link rel="icon" href="/icons/favicon.ico">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Roboto", sans-serif;
+            background: #0b1019;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        /* App Shell — header */
+        .header {
+            border-bottom: 1px solid #1f2937;
+            background: #111927;
+            padding: 0 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-inner {
+            padding: 20px 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        /* App Shell — nav */
+        .shell-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            padding: 8px 20px;
+            background: transparent;
+            color: #9ca3af;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover { background: #1f2937; color: white; }
+
+        .nav-btn.active {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: white;
+        }
+
+        /* Content area */
+        #app-content {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 0 40px;
+        }
+
+        /* Skeleton loader */
+        .skeleton {
+            background: linear-gradient(90deg, #111927 25%, #1f2937 50%, #111927 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.2s infinite;
+            border-radius: 10px;
+            height: 20px;
+            margin-bottom: 12px;
+        }
+
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Offline banner */
+        #offline-banner {
+            display: none;
+            background: #7f1d1d;
+            color: #fca5a5;
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        /* Injected content styles */
+        .add-form { display: flex; gap: 12px; margin-bottom: 28px; }
+
+        .add-form input {
+            flex: 1;
+            background: #111927;
+            border: 1px solid #1f2937;
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        .add-form input:focus { border-color: #2563eb; }
+        .add-form input::placeholder { color: #6b7280; }
+
+        .add-btn {
+            padding: 12px 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+
+        .add-btn:hover { background: #1e40af; }
+
+        #notes-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #notes-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            background: #111927;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            font-size: 15px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .btn-delete {
+            background: none;
+            border: 1px solid #7f1d1d;
+            color: #f87171;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 8px;
+            padding: 4px 10px;
+            transition: background 0.2s;
+        }
+
+        .btn-delete:hover { background: #1f1010; }
+
+        .about-box {
+            background: #111927;
+            border: 1px solid #1f2937;
+            border-radius: 16px;
+            padding: 32px;
+        }
+
+        .about-box h2 { font-size: 22px; margin-bottom: 16px; }
+        .about-box p  { color: #9ca3af; font-size: 15px; line-height: 1.7; margin-bottom: 8px; }
+
+        .version-badge {
+            display: inline-block;
+            background: #1e3a5f;
+            color: #60a5fa;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-inner">Список задач</div>
+        <nav class="shell-nav">
+            <button id="home-btn" class="nav-btn active">Главная</button>
+            <button id="about-btn" class="nav-btn">О приложении</button>
+        </nav>
+    </header>
+
+    <div id="offline-banner">Нет подключения к сети, работаем офлайн</div>
+
+    <main id="app-content"></main>
+
+    <footer style="text-align:center; padding: 20px; border-top: 1px solid #1f2937; margin-top: 40px;">
+        <button id="enable-push" class="nav-btn" style="background:#2563eb; color:white; border-color:#2563eb;">Включить уведомления</button>
+        <button id="disable-push" class="nav-btn" style="display:none; border-color:#7f1d1d; color:#f87171;">Отключить уведомления</button>
+    </footer>
+
+    <!-- Toast для WebSocket уведомлений -->
+    <div id="ws-toast" style="display:none; position:fixed; top:16px; right:16px; background:#2563eb; color:white; padding:14px 20px; border-radius:12px; z-index:9999; font-size:14px; box-shadow:0 4px 20px rgba(0,0,0,0.4);"></div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/app.js"></script>
+</body>
+</html>
