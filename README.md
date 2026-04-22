@@ -393,3 +393,131 @@ node server.js
 ```
 
 Сервер: `https://localhost:3000`
+
+---
+
+## Практическая работа 19 - PostgreSQL + Express REST API
+
+**Папка:** `PR19/`
+
+Express-сервер с подключением к реляционной базе данных PostgreSQL. CRUD API для управления пользователями.
+
+**Запуск:**
+```bash
+cd PR19
+npm install
+node server.js
+```
+
+Сервер: `http://localhost:3000`
+
+**Реализовано:**
+- Подключение к PostgreSQL через пул соединений
+- Автоматическое создание таблицы users при старте сервера
+- Полный CRUD для сущности Пользователь (first_name, last_name, age, created_at, updated_at)
+
+**Эндпоинты:**
+
+| Метод | Путь | Описание |
+|---|---|---|
+| POST | `/api/users` | Создать пользователя |
+| GET | `/api/users` | Список всех пользователей |
+| GET | `/api/users/:id` | Пользователь по ID |
+| PATCH | `/api/users/:id` | Обновить пользователя |
+| DELETE | `/api/users/:id` | Удалить пользователя |
+
+---
+
+## Практическая работа 20 - MongoDB + Express REST API
+
+**Папка:** `PR20/`
+
+Express-сервер с подключением к облачной базе данных MongoDB Atlas через Mongoose. CRUD API для управления пользователями.
+
+**Запуск:**
+```bash
+cd PR20
+npm install
+node server.js
+```
+
+Сервер: `http://localhost:3000`
+
+**Реализовано:**
+- Подключение к MongoDB Atlas через Mongoose
+- Mongoose-схема для сущности Пользователь (first_name, last_name, age, createdAt, updatedAt)
+- Полный CRUD для коллекции пользователей
+
+**Эндпоинты:**
+
+| Метод | Путь | Описание |
+|---|---|---|
+| POST | `/api/users` | Создать пользователя |
+| GET | `/api/users` | Список всех пользователей |
+| GET | `/api/users/:id` | Пользователь по ID |
+| PATCH | `/api/users/:id` | Обновить пользователя |
+| DELETE | `/api/users/:id` | Удалить пользователя |
+
+---
+
+## Практическая работа 21 - Redis кэширование
+
+**Папка:** `PR21/`
+
+Расширение PR11 (RBAC + JWT): добавлено кэширование GET-запросов через Redis. При первом запросе данные берутся с сервера и сохраняются в Redis, при повторном — возвращаются из кэша.
+
+**Запуск Redis:**
+```bash
+docker run -d --name redis-cache -p 6379:6379 redis
+```
+
+**Запуск сервера:**
+```bash
+cd PR21
+npm install
+node server.js
+```
+
+Сервер: `http://localhost:3000`
+
+**Реализовано:**
+- Подключение к Redis через Docker-контейнер
+- Middleware для чтения данных из кэша перед обращением к серверу
+- Сохранение ответов в Redis с TTL
+- Инвалидация кэша при изменении данных (PUT, DELETE)
+- Ответ содержит поле `source`: `"cache"` или `"server"`
+
+**Кэшируемые маршруты:**
+
+| Маршрут | Время кэша |
+|---|---|
+| `GET /api/users` | 1 минута |
+| `GET /api/users/:id` | 1 минута |
+| `GET /api/products` | 10 минут |
+| `GET /api/products/:id` | 10 минут |
+
+---
+
+## Практическая работа 22 - Балансировка нагрузки: Nginx + HAProxy
+
+**Папка:** `PR22/`
+
+Три экземпляра Node.js-бэкенда + два балансировщика нагрузки, поднятые через Docker Compose.
+
+**Запуск:**
+```bash
+cd PR22
+docker compose up --build
+```
+
+**Реализовано:**
+- Nginx на порту 80: балансирует между backend1 и backend2 по алгоритму round-robin, backend3 — резервный (backup)
+- HAProxy на порту 8080: балансирует между backend1 и backend2 по алгоритму round-robin
+- Параметры отказоустойчивости Nginx: max_fails=2, fail_timeout=30s — при двух неудачах сервер временно исключается
+
+**Адреса:**
+
+| Балансировщик | Адрес |
+|---|---|
+| Nginx | `http://localhost:80` |
+| HAProxy | `http://localhost:8080` |
