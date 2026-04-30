@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { nanoid } = require('nanoid');
@@ -5,16 +6,18 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { createClient } = require('redis');
 
+
+
 const app = express();
 const PORT = 3000;
 
-const ACCESS_SECRET = 'access_secret';
-const REFRESH_SECRET = 'refresh_secret';
-const ACCESS_EXPIRES_IN = '15m';
-const REFRESH_EXPIRES_IN = '7d';
+const ACCESS_SECRET = process.env.ACCESS_SECRET;
+const REFRESH_SECRET = process.env.REFRESH_SECRET;
+const ACCESS_EXPIRES_IN = process.env.ACCESS_EXPIRES_IN;
+const REFRESH_EXPIRES_IN = process.env.REFRESH_EXPIRES_IN;
 
-const USERS_CACHE_TTL = 60;
-const PRODUCTS_CACHE_TTL = 600;
+const USERS_CACHE_TTL = parseInt(process.env.USERS_CACHE_TTL);
+const PRODUCTS_CACHE_TTL = parseInt(process.env.PRODUCTS_CACHE_TTL);
 
 app.use(express.json());
 app.use(cors({
