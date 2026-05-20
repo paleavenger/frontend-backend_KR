@@ -15,7 +15,9 @@ frontend-backend-kr/
 ├── PR11/         - Full-stack: React + Express + JWT + RBAC (роли)
 ├── PR13/         - PWA: Service Worker + офлайн-режим + localStorage
 ├── PR14/         - PWA: Web App Manifest + установка как приложение
-└── PR15-16-17/   - PWA: HTTPS + App Shell + WebSockets + Push + Напоминания
+├── PR15-16-17/   - PWA: HTTPS + App Shell + WebSockets + Push + Напоминания
+├── PR25/         - Vite + React: Code Splitting, Lazy Loading, Bundle Analyzer
+└── PR26/         - GraphQL + Apollo Server, каталог книг с авторами
 ```
 
 ---
@@ -533,3 +535,92 @@ docker compose up --build
 |---|---|
 | Nginx | `http://localhost:80` |
 | HAProxy | `http://localhost:8080` |
+
+---
+
+## Практическая работа 25 - Vite + React: Code Splitting и Lazy Loading
+
+**Папка:** `PR25/`
+
+React-приложение на Vite с демонстрацией оптимизации бандла: разбивка на чанки, ленивая загрузка страниц, анализ размера бандла.
+
+**Запуск (dev-режим):**
+```bash
+cd PR25
+npm install
+npm run dev
+```
+
+Приложение: `http://localhost:5173`
+
+**Сборка и анализ бандла:**
+```bash
+npm run build
+npx vite preview
+```
+
+Приложение (prod): `http://localhost:4173`
+Отчёт: `bundle-report.html` — открывается автоматически после сборки
+
+**Реализовано:**
+- Vite как сборщик вместо Webpack (ESBuild в dev, Rollup в prod)
+- `manualChunks`: react + react-dom → `vendor-[hash].js`, react-router-dom → `router-[hash].js`
+- `React.lazy + Suspense`: страница AboutPage выносится в отдельный чанк, грузится только при переходе на `/about`
+- `rollup-plugin-visualizer`: генерирует интерактивную карту весов всех чанков
+- `sourcemap: true`: `.map` файлы для читаемого стектрейса в DevTools
+
+**Структура чанков после сборки:**
+
+| Чанк | Содержимое | Когда грузится |
+|---|---|---|
+| `vendor-[hash].js` | react + react-dom | сразу |
+| `router-[hash].js` | react-router-dom | сразу |
+| `index-[hash].js` | App.jsx + HomePage | сразу |
+| `AboutPage-[hash].js` | AboutPage | только при переходе на /about |
+
+---
+
+## Практическая работа 26 - GraphQL + Apollo Server
+
+**Папка:** `PR26/`
+
+GraphQL API на Apollo Server для каталога книг с авторами. Демонстрация преимуществ GraphQL над REST: клиент запрашивает только нужные поля, вложенные связи разрезолвируются автоматически.
+
+**Запуск:**
+```bash
+cd PR26
+npm install
+npm start
+```
+
+Сервер: `http://localhost:4000`
+Apollo Sandbox (браузерный интерфейс): `http://localhost:4000`
+
+**Реализовано:**
+- Schema (SDL): типы `Book`, `Author` с вложенными связями
+- Query: `books`, `book(id)`, `authors`
+- Mutation: `createAuthor`, `createBook`
+- Резолверы вложенных полей: `Book.author`, `Author.books`
+- In-memory хранилище данных
+
+**Примеры запросов:**
+
+```graphql
+query {
+    books {
+        title
+        year
+        author { name }
+    }
+}
+```
+
+```graphql
+mutation {
+    createBook(title: "Вишнёвый сад", year: 1904, authorId: "3") {
+        id
+        title
+        author { name }
+    }
+}
+```
